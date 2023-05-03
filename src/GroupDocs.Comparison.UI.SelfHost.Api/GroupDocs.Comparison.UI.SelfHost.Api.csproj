@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GroupDocs.Comparison" Version="23.4.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GroupDocs.Comparison.UI.Api\GroupDocs.Comparison.UI.Api.csproj" />
+    <ProjectReference Include="..\GroupDocs.Comparison.UI.Core\GroupDocs.Comparison.UI.Core.csproj" />
+  </ItemGroup>
+
+</Project>
