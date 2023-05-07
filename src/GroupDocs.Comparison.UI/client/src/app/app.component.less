@@ -1,0 +1,174 @@
+@import "./variables";
+@import (css) url('https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700,700i&display=swap');
+
+:host * {
+  font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+}
+
+::ng-deep .tools {
+  .button {
+    color    : #fff !important;
+    flex-flow: column;
+
+    &.inactive {
+      color: @regent-gray  !important;
+    }
+  }
+
+  .icon-button {
+    margin: 0px 0px 0px 7px !important;
+  }
+}
+
+::ng-deep .compare-file {
+  .icon-button {
+    margin: 0px !important;
+
+    .text {
+      padding: 0px !important;
+    }
+  }
+}
+
+.wrapper {
+  align-items: stretch;
+  height     : 100%;
+  width      : 100%;
+  position   : fixed;
+  top        : 0;
+  bottom     : 0;
+  left       : 0;
+  right      : 0;
+}
+
+.loader {
+  display        : flex;
+  flex-direction : column;
+  justify-content: center;
+  align-items    : center;
+  height         : 100%;
+}
+
+.upload-compare-file {
+  height        : 100%;
+  width         : 50%;
+  border-right  : 1px solid #CCC;
+  display       : flex;
+  align-content : center;
+  flex-direction: column;
+  text-align    : center;
+  flex-grow     : 0;
+}
+
+.open-file-panel {
+  display: flex;
+  width  : 100%;
+}
+
+.files-panel {
+  background-color: @mercury;
+  display         : flex;
+  flex-direction  : row;
+  width           : 100%;
+  height          : 100%;
+}
+
+.result-panel {
+  background-color: @mercury;
+  display         : flex;
+  width           : 100%;
+  height          : 100%;
+  display         : flex;
+  align-content   : center;
+  flex-direction  : column;
+  justify-content : center;
+  text-align      : center;
+}
+
+.doc-panel {
+  display: flex;
+  height : inherit;
+}
+
+.gd-document {
+  width : 100%;
+  height: 100%;
+}
+
+.top-panel {
+  display    : flex;
+  align-items: center;
+  width      : 100%;
+}
+
+.toolbar-panel {
+  background-color: #3e4e5a;
+  width           : 100%;
+}
+
+.row {
+  display: flex;
+  height : inherit;
+}
+
+.column {
+  width: 100%;
+}
+
+.tabs-wrapper {
+  display        : flex;
+  justify-self   : flex-end;
+  align-self     : flex-end;
+  width          : 100%;
+  justify-content: flex-end;
+}
+
+.tabs {
+  display        : flex;
+  align-items    : flex-end;
+  justify-content: flex-end;
+}
+
+::ng-deep .button.brand {
+  fa-icon {
+    color: #fff !important;
+  }
+}
+
+@media @phone-down {
+  .files-panel {
+    flex-direction: column;
+    height        : calc(100% - 60px);
+
+    .upload-compare-file {
+      width        : 100%;
+      height       : 50%;
+      border-bottom: 1px solid #CCC;
+    }
+  }
+
+  ::ng-deep .gd-side-panel-wrapper {
+    height: 50% !important;
+    top   : inherit !important;
+    bottom: 0px !important;
+  }
+
+  ::ng-deep .tools {
+    gd-button:nth-child(1)>.icon-button {
+      margin: 0px 0px 0px 10px !important;
+    }
+
+    .icon-button {
+      height: 60px !important;
+      width : 60px;
+    }
+  }
+
+  ::ng-deep .tabs-wrapper {
+    .gd-tab {
+      .icon {
+        font-size: 22px !important;
+      }
+    }
+  }
+}
