@@ -1,8 +1,10 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { AppComponent } from './app.component';
 import { APP_BASE_HREF } from '@angular/common';
-import { ComparisonModule } from '@groupdocs.examples.angular/comparison';
+
+import { AppComponent } from './app.component';
+import { ConfigService } from '@groupdocs.examples.angular/common-components';
+import { ComparisonModule } from "@groupdocs.examples.angular/comparison";
 
 declare global {
   interface Window {
@@ -11,18 +13,22 @@ declare global {
   }
 }
 
+export function configServiceFactory() {
+  let config = new ConfigService();
+  config.apiEndpoint = window.apiEndpoint;
+  config.getComparisonApiEndpoint = () => window.apiEndpoint;
+  config.getConfigEndpoint = () => window.uiSettingsPath;
+  return config;
+}
+
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
-    ComparisonModule
-  ],
-  providers: [
-    { provide: APP_BASE_HREF, useValue: '/' },
-    { provide: 'WINDOW', useValue: window }
-  ],
+  declarations: [AppComponent],
+  imports: [BrowserModule,
+    ComparisonModule],
+    providers: [
+      { provide: APP_BASE_HREF, useValue: '/' },
+      { provide: ConfigService, useFactory: configServiceFactory },
+    ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

@@ -1,98 +1,139 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
-  "newProjectRoot": "projects",
+  "newProjectRoot": "",
   "projects": {
-    "groupdocs-comparison-ui": {
+    "comparison": {
       "projectType": "application",
-      "schematics": {},
-      "root": "",
+      "schematics": {
+        "@nrwl/workspace:component": {
+          "style": "less"
+        }
+      },
+      "root": "apps/comparison",
       "sourceRoot": "src",
-      "prefix": "app",
+      "prefix": "client",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/groupdocs-comparison-ui",
+            "outputPath": "../resources/comparison",
             "index": "src/index.html",
             "main": "src/main.ts",
+            "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
-            "styles": [
-              "src/styles.css"
-            ],
+            "assets": ["src/assets"],
+            "styles": ["src/styles.less"],
             "scripts": []
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
                 }
-              ],
-              "outputHashing": "all"
-            },
-            "development": {
-              "buildOptimizer": false,
-              "optimization": false,
-              "vendorChunk": true,
-              "extractLicenses": false,
-              "sourceMap": true,
-              "namedChunks": true
+              ]
             }
-          },
-          "defaultConfiguration": "production"
+          }
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "comparison:build"
+          },
           "configurations": {
             "production": {
-              "browserTarget": "groupdocs-comparison-ui:build:production"
-            },
-            "development": {
-              "browserTarget": "groupdocs-comparison-ui:build:development"
+              "browserTarget": "comparison:build:production"
             }
-          },
-          "defaultConfiguration": "development"
+          }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "groupdocs-comparison-ui:build"
+            "browserTarget": "comparison:build"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "apps/comparison/tsconfig.app.json",
+              "apps/comparison/tsconfig.spec.json"
+            ],
+            "exclude": ["**/node_modules/**", "!apps/comparison/**"]
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@nrwl/jest:jest",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
-            "tsConfig": "tsconfig.spec.json",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
-            "styles": [
-              "src/styles.css"
-            ],
-            "scripts": []
+            "jestConfig": "apps/comparison/jest.config.js",
+            "tsConfig": "apps/comparison/tsconfig.spec.json",
+            "setupFile": "src/test-setup.ts"
+          }
+        }
+      }
+    },
+    "comparison-e2e": {
+      "root": "apps/comparison-e2e",
+      "sourceRoot": "apps/comparison-e2e/src",
+      "projectType": "application",
+      "architect": {
+        "e2e": {
+          "builder": "@nrwl/cypress:cypress",
+          "options": {
+            "cypressConfig": "apps/comparison-e2e/cypress.json",
+            "tsConfig": "apps/comparison-e2e/tsconfig.e2e.json",
+            "devServerTarget": "comparison:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "comparison:serve:production"
+            }
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": "apps/comparison-e2e/tsconfig.e2e.json",
+            "exclude": ["**/node_modules/**", "!apps/comparison-e2e/**"]
           }
         }
       }
     }
   },
   "cli": {
+    "warnings": {
+      "typescriptMismatch": false,
+      "versionMismatch": false
+    },
+    "defaultCollection": "@nrwl/angular",
     "analytics": false
-  }
+  },
+  "schematics": {
+    "@nrwl/angular:application": {
+      "unitTestRunner": "jest",
+      "e2eTestRunner": "cypress"
+    },
+    "@nrwl/angular:library": {
+      "unitTestRunner": "jest"
+    }
+  },
+  "defaultProject": "comparison"
 }
