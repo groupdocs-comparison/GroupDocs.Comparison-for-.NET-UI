@@ -1,19 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+	<TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="assets\index.html" />
+    <EmbeddedResource Include="assets\runtime.js" />
+    <EmbeddedResource Include="assets\polyfills.js" />
+    <EmbeddedResource Include="assets\main.js" />
+  </ItemGroup>
+	
+  <ItemGroup>
 	<FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GroupDocs.Comparison.UI.Api\GroupDocs.Comparison.UI.Api.csproj" />
-    <ProjectReference Include="..\GroupDocs.Comparison.UI.Core\GroupDocs.Comparison.UI.Core.csproj" />
   </ItemGroup>
 
 </Project>
