@@ -11,7 +11,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="GroupDocs.Comparison" Version="23.4.0" />
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\GroupDocs.Comparison.UI.Core\GroupDocs.Comparison.UI.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Service\" />
 	</ItemGroup>
 
 </Project>
