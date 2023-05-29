@@ -4,12 +4,12 @@ using System.IO;
 using GroupDocs.Comparison.Result;
 using GroupDocs.Comparison.Interfaces;
 using GroupDocs.Comparison.Options;
+using GroupDocs.Comparison.UI.Api.Util.Comparator;
 using GroupDocs.Comparison.UI.Api.Entity;
 using GroupDocs.Comparison.UI.Api.Models;
 using GroupDocs.Comparison.UI.Api.Config;
-using GroupDocs.Comparison.UI.Api.Util.Comparator;
 
-namespace GroupDocs.Comparison.UI.Api
+namespace GroupDocs.Comparison.UI.Api.Service
 {
     public class ComparisonServiceImpl : IComparisonService
     {
@@ -172,7 +172,7 @@ namespace GroupDocs.Comparison.UI.Api
                 IDocumentInfo documentInfo = comparer.Source.GetDocumentInfo();
                 if (documentInfo.PagesInfo == null)
                 {
-                    throw new GroupDocs.Comparison.Common.Exceptions.ComparisonException("File is corrupted.");
+                    throw new Common.Exceptions.ComparisonException("File is corrupted.");
                 }
 
                 if (loadAllPages)
@@ -215,7 +215,7 @@ namespace GroupDocs.Comparison.UI.Api
                 // get/set parameters
                 string documentGuid = postedData.guid;
                 int pageNumber = postedData.page;
-                string password = (string.IsNullOrEmpty(postedData.password)) ? null : postedData.password;
+                string password = string.IsNullOrEmpty(postedData.password) ? null : postedData.password;
 
                 using (Comparer comparer = new Comparer(documentGuid, GetLoadOptions(password)))
                 {

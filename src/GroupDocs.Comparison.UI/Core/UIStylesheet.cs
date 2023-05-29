@@ -11,7 +11,7 @@ namespace GroupDocs.Comparison.UI.Core
         public string ResourcePath { get; }
         public string ResourceRelativePath { get; }
 
-        private UIStylesheet(Options options, string filePath)
+        private UIStylesheet(UI.Configuration.Options options, string filePath)
         {
             FileName = Path.GetFileName(filePath);
             Content = File.ReadAllBytes(filePath);
@@ -19,7 +19,7 @@ namespace GroupDocs.Comparison.UI.Core
             ResourceRelativePath = $"{StylesheetsPath}/{FileName}";
         }
 
-        public static UIStylesheet Create(Options options, string filePath)
+        public static UIStylesheet Create(UI.Configuration.Options options, string filePath)
         {
             return new UIStylesheet(options, filePath);
         }

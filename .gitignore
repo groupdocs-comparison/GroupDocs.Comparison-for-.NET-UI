@@ -1,0 +1,10 @@
+.vs/
+src/GroupDocs.Comparison.UI.Api/obj/
+src/GroupDocs.Comparison.UI.Api/bin/
+src/GroupDocs.Comparison.UI/obj/
+src/GroupDocs.Comparison.UI/bin/
+src/GroupDocs.Comparison.UI.Core/obj/
+src/GroupDocs.Comparison.UI.Core/bin/
+src/GroupDocs.Comparison.UI.SelfHost.Api/obj/
+src/GroupDocs.Comparison.UI.SelfHost.Api/bin/
+src/GroupDocs.Comparison.UI/client/.angular/

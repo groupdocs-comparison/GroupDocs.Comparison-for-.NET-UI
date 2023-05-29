@@ -4,7 +4,7 @@ namespace GroupDocs.Comparison.UI.Core.Configuration
 {
     public class Config
     {
-        public string PageSelector { get; set; } = string.Empty;
+        public bool PageSelector { get; set; } = true;
         public bool Download { get; set; } = true;
         public bool Upload { get; set; } = true;
         public bool Print { get; set; } = true;

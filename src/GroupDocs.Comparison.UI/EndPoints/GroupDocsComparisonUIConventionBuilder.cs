@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GroupDocs.Comparison.UI.EndPoints
+namespace GroupDocs.Comparison.UI
 {
     class GroupDocsComparisonUIConventionBuilder : IEndpointConventionBuilder
     {

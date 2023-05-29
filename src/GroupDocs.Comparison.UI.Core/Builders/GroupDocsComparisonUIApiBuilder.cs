@@ -2,11 +2,11 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public class GroupDocsComparisonUIBuilder
+    public class GroupDocsComparisonUIApiBuilder
     {
         public IServiceCollection Services { get; }
 
-        public GroupDocsComparisonUIBuilder(IServiceCollection services)
+        public GroupDocsComparisonUIApiBuilder(IServiceCollection services)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
         }

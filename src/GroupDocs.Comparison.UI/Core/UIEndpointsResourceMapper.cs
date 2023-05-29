@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
+
 namespace GroupDocs.Comparison.UI.Core
 {
     internal class UIEndpointsResourceMapper
@@ -19,7 +20,7 @@ namespace GroupDocs.Comparison.UI.Core
             _reader = reader ?? throw new ArgumentNullException(nameof(reader));
         }
 
-        public IEnumerable<IEndpointConventionBuilder> Map(IEndpointRouteBuilder builder, Options options)
+        public IEnumerable<IEndpointConventionBuilder> Map(IEndpointRouteBuilder builder, UI.Configuration.Options options)
         {
             var endpoints = new List<IEndpointConventionBuilder>();
 

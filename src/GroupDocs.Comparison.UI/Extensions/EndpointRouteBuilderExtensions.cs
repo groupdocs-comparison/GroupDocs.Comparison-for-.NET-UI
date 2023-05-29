@@ -1,5 +1,4 @@
 ﻿using GroupDocs.Comparison.UI;
-using GroupDocs.Comparison.UI.EndPoints;
 using GroupDocs.Comparison.UI.Core;
 using GroupDocs.Comparison.UI.Middleware;
 using Microsoft.AspNetCore.Routing;
@@ -14,9 +13,9 @@ namespace GroupDocs.Comparison.UI.Extensions
     public static class EndpointRouteBuilderExtensions
     {
         public static IEndpointConventionBuilder MapGroupDocsComparisonUI(this IEndpointRouteBuilder builder,
-            Action<Options> setupOptions = null)
+            Action<Configuration.Options> setupOptions = null)
         {
-            var options = new Options();
+            var options = new Configuration.Options();
             setupOptions?.Invoke(options);
 
             EnsureValidApiOptions(options);
@@ -41,7 +40,7 @@ namespace GroupDocs.Comparison.UI.Extensions
             return new GroupDocsComparisonUIConventionBuilder(endpointConventionBuilders);
         }
 
-        private static void EnsureValidApiOptions(Options options)
+        private static void EnsureValidApiOptions(Configuration.Options options)
         {
             Action<string, string> ensureValidPath = (string path, string argument) =>
             {
@@ -61,8 +60,8 @@ namespace GroupDocs.Comparison.UI.Extensions
             };
 
 
-            ensureValidPath(options.UIPath, nameof(Options.UIPath));
-            ensureNotEmpty(options.APIEndpoint, nameof(Options.APIEndpoint));
+            ensureValidPath(options.UIPath, nameof(Configuration.Options.UIPath));
+            ensureNotEmpty(options.APIEndpoint, nameof(Configuration.Options.APIEndpoint));
         }
     }
 }

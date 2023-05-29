@@ -19,7 +19,7 @@ namespace GroupDocs.Comparison.UI.Core.Extensions
         }
 
         public static string GetIndexPageHtml(this UIResource index,
-            Options options, PathString pathBase, Dictionary<string, string> routeValues)
+            UI.Configuration.Options options, PathString pathBase, Dictionary<string, string> routeValues)
         {
             var uiPath = options.UIPath
                 .AppendPathBase(pathBase)
@@ -46,7 +46,7 @@ namespace GroupDocs.Comparison.UI.Core.Extensions
 
             return html.ToString();
         }
-        public static ICollection<UIStylesheet> GetCustomStylesheets(this UIResource resource, Options options)
+        public static ICollection<UIStylesheet> GetCustomStylesheets(this UIResource resource, UI.Configuration.Options options)
         {
             List<UIStylesheet> styleSheets = new List<UIStylesheet>();
 
