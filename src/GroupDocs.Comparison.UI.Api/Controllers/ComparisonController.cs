@@ -1,259 +1,278 @@
-﻿using GroupDocs.Comparison.Common.Exceptions;
-using GroupDocs.Comparison.UI.Api.Config;
-using GroupDocs.Comparison.UI.Api.Entity;
-using GroupDocs.Comparison.UI.Api.Models;
-using GroupDocs.Comparison.UI.Api.Util;
-using Newtonsoft.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Net.Http.Headers;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Net;
+using System.Linq;
 using System.Net.Http;
-using System.Net.Mime;
-using System.Resources;
-
+using System.Threading.Tasks;
+using GroupDocs.Comparison.UI.Api.Infrastructure;
+using GroupDocs.Comparison.UI.Api.Models;
+using GroupDocs.Comparison.UI.Core;
+using GroupDocs.Comparison.UI.Core.Configuration;
+using GroupDocs.Comparison.UI.Core.Entities;
+//using GroupDocs.Comparison.UI.Core.Extensions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace GroupDocs.Comparison.UI.Api.Controllers
 {
-    /// <summary>
-    /// SignatureApiController
-    /// </summary>
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class ComparisonController : ControllerBase
     {
-        private readonly IComparisonService comparisonService;
-        private static readonly GlobalConfiguration globalConfiguration = new GlobalConfiguration();
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="globalConfiguration">GlobalConfiguration</param>
-        public ComparisonController()
+        private readonly IFileStorage _fileStorage;
+        private readonly IFileNameResolver _fileNameResolver;
+        private readonly ISearchTermResolver _searchTermResolver;
+        private readonly IUIConfigProvider _uiConfigProvider;
+        private readonly IComparison _comparison;
+        private readonly ILogger<ComparisonController> _logger;
+        private readonly Config _config;
+
+        public ComparisonController(IFileStorage fileStorage,
+            IFileNameResolver fileNameResolver,
+            ISearchTermResolver searchTermResolver,
+            IUIConfigProvider uiConfigProvider,
+            IComparison comparison,
+            IOptions<Config> config,
+            ILogger<ComparisonController> logger)
         {
-            comparisonService = new ComparisonServiceImpl(globalConfiguration);
+            _fileStorage = fileStorage;
+            _fileNameResolver = fileNameResolver;
+            _searchTermResolver = searchTermResolver;
+            _comparison = comparison;
+            _logger = logger;
+            _config = config.Value;
+            _uiConfigProvider = uiConfigProvider;
         }
 
-        /// <summary>
-        /// Load Comparison configuration
-        /// </summary>
-        /// <returns>Comparison configuration</returns>
         [HttpGet]
-        public ComparisonConfiguration LoadConfig()
+        public IActionResult LoadConfig()
         {
-            return globalConfiguration.Comparison;
-        }
-
-        /// <summary>
-        /// Get all files and directories from storage
-        /// </summary>
-        /// <param name="postedData">Post data</param>
-        /// <returns>List of files and directories</returns>
-        [HttpPost]
-        public ActionResult LoadFileTree(PostedDataEntity fileTreeRequest)
-        {
-            var files = comparisonService.LoadFiles(fileTreeRequest);
-            return Ok(files);
-        }
-
-
-        /// <summary>
-        /// Download results
-        /// </summary>
-        /// <param name=""></param>
-        [HttpGet]
-        public IActionResult DownloadDocument(string guid)
-        {
-            string filePath = guid;
-            if (!string.IsNullOrEmpty(filePath))
+            var config = new LoadConfigResponse
             {
-                if (System.IO.File.Exists(filePath))
-                {
-                    var fileStream = new FileStream(filePath, FileMode.Open);
-                    var fileContent = new byte[fileStream.Length];
-                    fileStream.Read(fileContent, 0, (int)fileStream.Length);
+                PageSelector = _config.PageSelector,
+                Download = _config.Download,
+                Upload = _config.Upload,
+                Print = _config.Print,
+                Browse = _config.Browse,
+                Rewrite = _config.Rewrite,
+                EnableRightClick = _config.EnableRightClick
+            };
 
-                    var contentTypeProvider = new FileExtensionContentTypeProvider();
-                    if (!contentTypeProvider.TryGetContentType(filePath, out var contentType))
-                    {
-                        contentType = "application/octet-stream";
-                    }
+            _uiConfigProvider.ConfigureUI(_config);
 
-                    return File(fileContent, contentType, Path.GetFileName(filePath));
-                }
-            }
-            return NotFound();
+            return OkJsonResult(config);
         }
 
-
-        /// <summary>
-        /// Upload document
-        /// </summary>
-        /// <param name=""></param>
-        /// <returns></returns>
         [HttpPost]
-        public IActionResult UploadDocument()
+        public async Task<IActionResult> LoadFileTree([FromBody] LoadFileTreeRequest request)
         {
+            if (!_config.Browse)
+                return ErrorJsonResult("Browsing files is disabled.");
+
             try
             {
-                string url = Request.Form["url"];
-                // get documents storage path
-                string documentStoragePath = globalConfiguration.Comparison.GetFilesDirectory();
-                bool rewrite = bool.Parse(Request.Form["rewrite"]);
-                string fileSavePath = "";
-                if (string.IsNullOrEmpty(url))
-                {
-                    if (Request.Form.Files.Count > 0)
-                    {
-                        var httpPostedFile = Request.Form.Files[0];
-                        if (httpPostedFile != null)
-                        {
-                            if (rewrite)
-                            {
-                                // Get the complete file path
-                                fileSavePath = Path.Combine(documentStoragePath, httpPostedFile.FileName);
-                            }
-                            else
-                            {
-                                fileSavePath = Resources.GetFreeFileName(documentStoragePath, httpPostedFile.FileName);
-                            }
+                var files =
+                    await _fileStorage.ListDirsAndFilesAsync(request.Path);
 
-                            using (var fileStream = new FileStream(fileSavePath, FileMode.Create))
-                            {
-                                httpPostedFile.CopyTo(fileStream);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    using (WebClient client = new WebClient())
-                    {
-                        // get file name from the URL
-                        Uri uri = new Uri(url);
-                        string fileName = Path.GetFileName(uri.LocalPath);
-                        if (rewrite)
-                        {
-                            // Get the complete file path
-                            fileSavePath = Path.Combine(documentStoragePath, fileName);
-                        }
-                        else
-                        {
-                            fileSavePath = Resources.GetFreeFileName(documentStoragePath, fileName);
-                        }
-                        // Download the Web resource and save it into the current filesystem folder.
-                        client.DownloadFile(url, fileSavePath);
-                    }
-                }
-                UploadedDocumentEntity uploadedDocument = new UploadedDocumentEntity();
-                uploadedDocument.guid = fileSavePath;
-                return Ok(uploadedDocument);
-            }
-            catch (System.Exception ex)
-            {
-                // set exception message
-                return StatusCode(500, new Resources().GenerateException(ex));
-            }
-        }
+                var result = files
+                    .Select(entity => new FileDescription(entity.FilePath, entity.FilePath, entity.IsDirectory, entity.Size))
+                    .ToList();
 
-        /// <summary>
-        /// Compare files from local storage
-        /// </summary>
-        /// <param name="compareRequest"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public async Task<IActionResult> Compare(CompareRequest compareRequest)
-        {
-            try
-            {
-                // Проверяем форматы
-                if (comparisonService.CheckFiles(compareRequest))
-                {
-                    // Выполняем сравнение
-                    CompareResultResponse result = comparisonService.Compare(compareRequest);
-                    JsonSerializerSettings settings = new JsonSerializerSettings();
-                    settings.ContractResolver = new LowercaseContractResolver();
-                    string json = JsonConvert.SerializeObject(result, Formatting.Indented, settings);
-                    var compareResult = JsonConvert.DeserializeObject(json);
-                    return Ok(compareResult);
-                }
-                else
-                {
-                    return Ok(new Resources().GenerateException(new Exception("Document types are different")));
-                }
+                return OkJsonResult(result);
             }
             catch (Exception ex)
             {
-                return StatusCode((int)HttpStatusCode.InternalServerError, new Resources().GenerateException(ex));
+                _logger.LogError(ex, "Failed to load file tree.");
+
+                return ErrorJsonResult(ex.Message);
             }
         }
 
+           [HttpGet]
+           public async Task<IActionResult> DownloadDocument([FromQuery] string path)
+           {
+               if (!_config.Download)
+                   return ErrorJsonResult("Downloading files is disabled.");
 
-        /// Set new changes in result file
-        /// </summary>
-        /// <param name="compareRequest"></param>
-        /// <param name="listOfChanges"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public async Task<IActionResult> Changes(SetChangesRequest setChangesRequest)
-        {
-            try
-            {
-                CompareResultResponse result = comparisonService.SetChanges(setChangesRequest);
-                JsonSerializerSettings settings = new JsonSerializerSettings();
-                settings.ContractResolver = new LowercaseContractResolver();
-                string json = JsonConvert.SerializeObject(result, Formatting.Indented, settings);
-                var compareResult = JsonConvert.DeserializeObject(json);
-                return Ok(compareResult);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode((int)HttpStatusCode.InternalServerError, new Resources().GenerateException(ex));
-            }
-        }
+               try
+               {
+                   var fileName = await _fileNameResolver.ResolveFileNameAsync(path);
+                   var bytes = await _fileStorage.ReadFileAsync(path);
 
-        /// <summary>
-        /// Get result page
-        /// </summary>
-        /// <param name="loadResultPageRequest"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public async Task<IActionResult> LoadDocumentDescription(PostedDataEntity loadResultPageRequest)
-        {
-            try
-            {
-                LoadDocumentEntity document = ComparisonServiceImpl.LoadDocumentPages(loadResultPageRequest.guid, loadResultPageRequest.password, globalConfiguration.Comparison.GetPreloadResultPageCount() == 0);
-                return Ok(document);
-            }
-            catch (PasswordProtectedFileException ex)
-            {
-                return StatusCode((int)HttpStatusCode.Forbidden, new Resources().GenerateException(ex, loadResultPageRequest.password));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode((int)HttpStatusCode.InternalServerError, new Resources().GenerateException(ex, loadResultPageRequest.password));
-            }
-        }
+                   return File(bytes, "application/octet-stream", fileName);
+               }
+               catch (Exception ex)
+               {
+                   _logger.LogError(ex, "Failed to download a document.");
 
+                   return ErrorJsonResult(ex.Message);
+               }
+           }
 
-        /// <summary>
-        /// Get document page
-        /// </summary>
-        /// <param name="postedData">Post data</param>
-        /// <returns>Document page object</returns>
-        [HttpPost]
-        public async Task<IActionResult> LoadDocumentPage(PostedDataEntity postedData)
-        {
-            try
-            {
-                var documentPage = comparisonService.LoadDocumentPage(postedData);
-                return Ok(documentPage);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode((int)HttpStatusCode.InternalServerError, new Resources().GenerateException(ex));
-            }
-        }
+           [HttpPost]
+           public async Task<IActionResult> UploadDocument()
+           {
+               if (!_config.Upload)
+                   return ErrorJsonResult("Uploading files is disabled.");
 
+               try
+               {
+                   var (fileName, bytes) = await ReadOrDownloadFile();
+                   bool.TryParse(Request.Form["rewrite"], out var rewrite);
+
+                   var filePath = await _fileStorage.WriteFileAsync(fileName, bytes, rewrite);
+
+                   var result = new UploadFileResponse(filePath);
+
+                   return OkJsonResult(result);
+               }
+               catch (Exception ex)
+               {
+                   _logger.LogError(ex, "Failed to upload document.");
+
+                   return ErrorJsonResult(ex.Message);
+               }
+           }
+
+           [HttpPost]
+           public async Task<IActionResult> LoadDocumentDescription([FromBody] LoadDocumentDescriptionRequest request)
+           {
+               try
+               {
+                   var fileCredentials =
+                       new FileCredentials(request.Guid, request.FileType, request.Password);
+                   var documentDescription =
+                       await _comparison.GetDocumentInfoAsync(fileCredentials);
+
+                   //var pageNumbers = GetPageNumbers(documentDescription.Pages.Count());
+                   //var pagesData = await _comparison.GetPagesAsync(fileCredentials, pageNumbers);
+
+                   var pages = new List<PageDescription>();
+                   var searchTerm = await _searchTermResolver.ResolveSearchTermAsync(request.Guid);
+/*                   foreach (PageInfo pageInfo in documentDescription.Pages)
+                   {
+                       //var pageData = pagesData.FirstOrDefault(p => p.PageNumber == pageInfo.Number);
+                       var pageDescription = new PageDescription
+                       {
+                           Width = pageInfo.Width,
+                           Height = pageInfo.Height,
+                           Number = pageInfo.Number,
+                           SheetName = pageInfo.Name,
+                           //Data = pageData?.GetContent()
+                       };
+
+                       pages.Add(pageDescription);
+                   }*/
+
+                   var result = new LoadDocumentDescriptionResponse
+                   {
+                       Guid = request.Guid,
+                       FileType = documentDescription.FileType,
+                      /* PrintAllowed = documentDescription.PrintAllowed,*/
+                       Pages = pages,
+                       //SearchTerm = searchTerm
+                   };
+
+                   return OkJsonResult(result);
+               }
+               catch (Exception ex)
+               {
+                   if (ex.Message.Contains("password", StringComparison.InvariantCultureIgnoreCase))
+                   {
+                       var message = string.IsNullOrEmpty(request.Password)
+                               ? "Password Required"
+                               : "Incorrect Password";
+
+                       return ForbiddenJsonResult(message);
+                   }
+
+                   _logger.LogError(ex, "Failed to read document description.");
+
+                   return ErrorJsonResult(ex.Message);
+               }
+           }
+
+        /*
+           [HttpPost]
+           public async Task<IActionResult> LoadDocumentPage([FromBody] LoadDocumentPageRequest request)
+           {
+               try
+               {
+                   var fileCredentials =
+                       new FileCredentials(request.Guid, request.FileType, request.Password);
+                   var page = await _comparison.GetPageAsync(fileCredentials, request.Page);
+                   var pageContent = new PageContent { Number = page.PageNumber, Data = page.GetContent() };
+
+                   return OkJsonResult(pageContent);
+               }
+               catch (Exception ex)
+               {
+                   if (ex.Message.Contains("password", StringComparison.InvariantCultureIgnoreCase))
+                   {
+                       var message = string.IsNullOrEmpty(request.Password)
+                           ? "Password Required"
+                           : "Incorrect Password";
+
+                       return ForbiddenJsonResult(message);
+                   }
+
+                   _logger.LogError(ex, "Failed to retrieve document page.");
+
+                   return ErrorJsonResult(ex.Message);
+               }
+           }
+*/
+           private Task<(string, byte[])> ReadOrDownloadFile()
+           {
+               var url = Request.Form["url"].ToString();
+
+               return string.IsNullOrEmpty(url)
+                   ? ReadFileFromRequest()
+                   : DownloadFileAsync(url);
+           }
+
+           private async Task<(string, byte[])> ReadFileFromRequest()
+           {
+               var formFile = Request.Form.Files.First();
+               var stream = new MemoryStream();
+
+               await formFile.CopyToAsync(stream);
+
+               return (formFile.FileName, stream.ToArray());
+           }
+
+           private async Task<(string, byte[])> DownloadFileAsync(string url)
+           {
+               using HttpClient httpClient = new HttpClient();
+               httpClient.DefaultRequestHeaders.Add("User-Agent", "Other");
+
+               Uri uri = new Uri(url);
+               string fileName = Path.GetFileName(uri.LocalPath);
+               byte[] bytes = await httpClient.GetByteArrayAsync(uri);
+
+               return (fileName, bytes);
+           }
+        
+        private IActionResult ErrorJsonResult(string message) =>
+            new ComparisonActionResult(new ErrorResponse(message))
+            {
+                StatusCode = StatusCodes.Status500InternalServerError
+            };
+
+        private IActionResult ForbiddenJsonResult(string message) =>
+            new ComparisonActionResult(new ErrorResponse(message))
+            {
+                StatusCode = StatusCodes.Status403Forbidden
+            };
+
+        private IActionResult NotFoundJsonResult(string message) =>
+            new ComparisonActionResult(new ErrorResponse(message))
+            {
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+        private IActionResult OkJsonResult(object result) =>
+            new ComparisonActionResult(result);
     }
 }

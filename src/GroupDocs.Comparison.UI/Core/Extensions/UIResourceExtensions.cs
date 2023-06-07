@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using GroupDocs.Comparison.UI.Configuration;
@@ -74,4 +73,5 @@ namespace GroupDocs.Comparison.UI.Core.Extensions
         }
 
     }
+
 }

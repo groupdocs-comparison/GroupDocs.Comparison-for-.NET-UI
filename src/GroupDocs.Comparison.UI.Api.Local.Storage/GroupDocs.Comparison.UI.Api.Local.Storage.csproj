@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+
+		<PackageId>GroupDocs.Comparison.UI.Api.Local.Storage</PackageId>
+		<Version>$(GroupDocsComparisonUIApiLocalStorage)</Version>
+		<Description>GroupDocs.Comparison.UI.Api.Local.Storage containing local file-storage implementation that can be used with GroupDocs.Comparison.UI.Api see https://github.com/groupdocs-comparison/GroupDocs.Comparison-for-.NET-UI for more details.</Description>
+		<PackageTags>GroupDocs;Comparison;UI;API;Local;File;Storage;ASP.NET Core;</PackageTags>
+		<PackageIcon>images\icon.png</PackageIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="images\icon.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\GroupDocs.Comparison.UI\GroupDocs.Comparison.UI.csproj" />
+	</ItemGroup>
+
+</Project>

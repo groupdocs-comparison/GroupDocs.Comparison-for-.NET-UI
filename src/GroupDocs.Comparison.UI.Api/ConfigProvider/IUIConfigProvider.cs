@@ -4,6 +4,6 @@ namespace GroupDocs.Comparison.UI.Api
 {
     public interface IUIConfigProvider
     {
-        void ConfigureUI(Core.Configuration.Config config);
+        void ConfigureUI(Config config);
     }
 }
