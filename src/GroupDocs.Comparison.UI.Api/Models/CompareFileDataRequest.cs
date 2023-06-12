@@ -1,33 +1,21 @@
 ﻿using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace GroupDocs.Comparison.UI.Api.Models
 {
     public class CompareFileDataRequest
     {
-        [JsonProperty]
-        private string guid { get; set; }
+        /// <summary>
+        /// File unique ID.
+        /// </summary>
+        [JsonPropertyName("guid")]
+        public string guid { get; set; }
 
-        [JsonProperty]
-        private string password { get; set; }
+        /// <summary>
+        /// The password to open a document.
+        /// </summary>
+        [JsonPropertyName("password")]
+        public string password { get; set; }
 
-        public void SetGuid(string guid)
-        {
-            this.guid = guid;
-        }
-
-        public string GetGuid()
-        {
-            return guid;
-        }
-
-        public void SetPassword(string password)
-        {
-            this.password = password;
-        }
-
-        public string GetPassword()
-        {
-            return password;
-        }
     }
 }

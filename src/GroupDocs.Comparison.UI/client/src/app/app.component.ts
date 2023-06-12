@@ -2,7 +2,7 @@ import { Component, ElementRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { ComparisonAppComponent, ComparisonService, ComparisonConfigService, DifferencesService } from '@groupdocs.examples.angular/comparison';
-import { ModalService, UploadFilesService, TabActivatorService, PagePreloadService, PasswordService } from '@groupdocs.examples.angular/common-components';
+import { Api, ModalService, UploadFilesService, TabActivatorService, PagePreloadService, PasswordService, TypedFileCredentials, ConfigService } from '@groupdocs.examples.angular/common-components';
 
 @Component({
     selector: 'app-root',
@@ -11,11 +11,12 @@ import { ModalService, UploadFilesService, TabActivatorService, PagePreloadServi
 })
 export class AppComponent extends ComparisonAppComponent {
 
+    apiConfigService: ConfigService;
     comparisonService: ComparisonService;
     http: HttpClient;
 
     constructor(comparisonService: ComparisonService,
-      configService: ComparisonConfigService,
+      comparisonConfigService: ComparisonConfigService,
       differencesService: DifferencesService,
       uploadFilesService: UploadFilesService,
       pagePreloadService: PagePreloadService,
@@ -23,10 +24,11 @@ export class AppComponent extends ComparisonAppComponent {
       tabActivatorService: TabActivatorService,
       elementRef: ElementRef<HTMLElement>,
       passwordService: PasswordService, 
-      http: HttpClient) {
+      http: HttpClient,
+      apiConfigService: ConfigService) {
 
           super(comparisonService,
-            configService,
+            comparisonConfigService,
             differencesService,
             uploadFilesService,
             pagePreloadService,
@@ -37,5 +39,15 @@ export class AppComponent extends ComparisonAppComponent {
   
           this.comparisonService = comparisonService;
           this.http = http;
+          this.apiConfigService = apiConfigService;
       }
+      
+      loadPage(credentials: TypedFileCredentials, pages: number[]) {
+        return this.http.post(this.apiConfigService.getComparisonApiEndpoint() + Api.LOAD_DOCUMENT_PAGE, {
+            'Guid': credentials.guid,
+            'FileType': credentials.fileType,
+            'Password': credentials.password,
+            'Page': pages
+        }, Api.httpOptionsJson);
+    }
 }    

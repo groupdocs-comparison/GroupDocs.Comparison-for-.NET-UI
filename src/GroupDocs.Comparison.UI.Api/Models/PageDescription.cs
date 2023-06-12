@@ -8,13 +8,13 @@ namespace GroupDocs.Comparison.UI.Api.Models
         /// Page with in pixels.
         /// </summary>
         [JsonPropertyName("width")]
-        public int Width { get; set; }
+        public double Width { get; set; }
 
         /// <summary>
         /// Page height in pixels.
         /// </summary>
         [JsonPropertyName("height")]
-        public int Height { get; set; }
+        public double Height { get; set; }
 
         /// <summary>
         /// Worksheet name for spreadsheets.

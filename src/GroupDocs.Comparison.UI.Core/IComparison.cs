@@ -6,5 +6,6 @@ namespace GroupDocs.Comparison.UI.Core
     public interface IComparison
     {
         Task<DocumentInfo> GetDocumentInfoAsync(FileCredentials fileCredentials);
+
     }
 }

@@ -12,15 +12,15 @@ namespace GroupDocs.Comparison.UI.Api
         /// Compare two documents, save results in files
         /// </summary>
         /// <param name="compareRequest">PostedDataEntity</param>
-        /// <returns>CompareResultResponse</returns>
-        CompareResultResponse Compare(CompareRequest compareRequest);
+        /// <returns>CompareResponse</returns>
+        CompareResponse Compare(CompareRequest compareRequest);
 
         /// <summary>
         /// Compare two documents and accept/reject changes, save results in files
         /// </summary>
         /// <param name="setChangesRequest">PostedDataEntity</param>
-        /// <returns>CompareResultResponse</returns>
-        CompareResultResponse SetChanges(SetChangesRequest setChangesRequest);
+        /// <returns>CompareResponse</returns>
+        CompareResponse SetChanges(SetChangesRequest setChangesRequest);
 
         /// <summary>
         ///  Load document page as images

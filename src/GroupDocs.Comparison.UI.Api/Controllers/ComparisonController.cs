@@ -2,18 +2,27 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using GroupDocs.Comparison.Common.Exceptions;
+using GroupDocs.Comparison.Interfaces;
+using GroupDocs.Comparison.UI.Api.Entity;
 using GroupDocs.Comparison.UI.Api.Infrastructure;
 using GroupDocs.Comparison.UI.Api.Models;
 using GroupDocs.Comparison.UI.Core;
 using GroupDocs.Comparison.UI.Core.Configuration;
+using GroupDocs.Comparison.Options;
 using GroupDocs.Comparison.UI.Core.Entities;
 //using GroupDocs.Comparison.UI.Core.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using GroupDocs.Comparison.UI.Api.Util.Comparator;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Drawing.Drawing2D;
+using GroupDocs.Comparison.Result;
 
 namespace GroupDocs.Comparison.UI.Api.Controllers
 {
@@ -67,19 +76,54 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> LoadFileTree([FromBody] LoadFileTreeRequest request)
         {
-            if (!_config.Browse)
-                return ErrorJsonResult("Browsing files is disabled.");
-
+            // get request body
+            string relDirPath = request.Path;
+            // get file list from storage path
             try
             {
-                var files =
-                    await _fileStorage.ListDirsAndFilesAsync(request.Path);
+                // get all the files from a directory
+                if (string.IsNullOrEmpty(relDirPath))
+                {
+                    relDirPath = _config.FilesDirectory;
+                }
+                else
+                {
+                    relDirPath = Path.Combine(_config.FilesDirectory, relDirPath);
+                }
 
-                var result = files
-                    .Select(entity => new FileDescription(entity.FilePath, entity.FilePath, entity.IsDirectory, entity.Size))
-                    .ToList();
+                List<string> allFiles = new List<string>(Directory.GetFiles(relDirPath));
+                allFiles.AddRange(Directory.GetDirectories(relDirPath));
+                List<FileDescriptionEntity> fileList = new List<FileDescriptionEntity>();
 
-                return OkJsonResult(result);
+                allFiles.Sort(new FileNameComparator());
+                allFiles.Sort(new FileTypeComparator());
+
+                foreach (string file in allFiles)
+                {
+                    System.IO.FileInfo fileInfo = new System.IO.FileInfo(file);
+                    // check if current file/folder is hidden
+                    if (!(fileInfo.Attributes.HasFlag(FileAttributes.Hidden) ||
+                        Path.GetFileName(file).StartsWith(".") ||
+                        Path.GetFileName(file).Equals(Path.GetFileName(_config.FilesDirectory)) ||
+                        Path.GetFileName(file).Equals(Path.GetFileName(_config.FilesDirectory))))
+                    {
+                        FileDescriptionEntity fileDescription = new FileDescriptionEntity
+                        {
+                            guid = Path.GetFullPath(file),
+                            name = Path.GetFileName(file),
+                            // set is directory true/false
+                            isDirectory = fileInfo.Attributes.HasFlag(FileAttributes.Directory)
+                        };
+                        // set file size
+                        if (!fileDescription.isDirectory)
+                        {
+                            fileDescription.size = fileInfo.Length;
+                        }
+                        // add object to array list
+                        fileList.Add(fileDescription);
+                    }
+                }
+                return OkJsonResult(fileList);
             }
             catch (Exception ex)
             {
@@ -135,76 +179,85 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
                }
            }
 
-           [HttpPost]
-           public async Task<IActionResult> LoadDocumentDescription([FromBody] LoadDocumentDescriptionRequest request)
-           {
-               try
-               {
-                   var fileCredentials =
-                       new FileCredentials(request.Guid, request.FileType, request.Password);
-                   var documentDescription =
-                       await _comparison.GetDocumentInfoAsync(fileCredentials);
+        [HttpPost]
+        public IActionResult LoadDocumentDescription([FromBody] LoadDocumentDescriptionRequest request)
+        {
+            try
+            {
+                LoadDocumentEntity loadDocumentEntity = new LoadDocumentEntity();
 
-                   //var pageNumbers = GetPageNumbers(documentDescription.Pages.Count());
-                   //var pagesData = await _comparison.GetPagesAsync(fileCredentials, pageNumbers);
+                using (Comparer comparer = new Comparer(request.Guid, GetLoadOptions(request.Password)))
+                {
+                    IDocumentInfo documentInfo = comparer.Source.GetDocumentInfo();
+                    if (documentInfo.PagesInfo == null)
+                    {
+                        throw new GroupDocs.Comparison.Common.Exceptions.ComparisonException("File is corrupted.");
+                    }
+                    List<PageDescription> PageDescriptions = new List<PageDescription>();
+                    for (int i = 0; i < documentInfo.PageCount; i++)
+                    {
+                        string encodedImage = GetPageData(i, request.Guid, request.Password);
+                        PageDescription page = new PageDescription()
+                        {
+                            Height = documentInfo.PagesInfo[i].Height,
+                            Width = documentInfo.PagesInfo[i].Width,
+                            Data = encodedImage
+                        };
+                        PageDescriptions.Add(page);
+                    }
+                    var result = new LoadDocumentDescriptionResponse
+                    {
+                        Guid = request.Guid,
+                        FileType = request.FileType,
+                        /*to do PrintAllowed = request.PrintAllowed,*/
+                        Pages = PageDescriptions,
+                        /*to do SearchTerm = searchTerm*/
+                    };
 
-                   var pages = new List<PageDescription>();
-                   var searchTerm = await _searchTermResolver.ResolveSearchTermAsync(request.Guid);
-/*                   foreach (PageInfo pageInfo in documentDescription.Pages)
-                   {
-                       //var pageData = pagesData.FirstOrDefault(p => p.PageNumber == pageInfo.Number);
-                       var pageDescription = new PageDescription
-                       {
-                           Width = pageInfo.Width,
-                           Height = pageInfo.Height,
-                           Number = pageInfo.Number,
-                           SheetName = pageInfo.Name,
-                           //Data = pageData?.GetContent()
-                       };
+                    return OkJsonResult(result);
+                }
+            }
+            catch (PasswordProtectedFileException ex)
+            {
+                var message = string.IsNullOrEmpty(request.Password)
+                        ? "Password Required"
+                        : "Incorrect Password";
 
-                       pages.Add(pageDescription);
-                   }*/
+                return ForbiddenJsonResult(message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to read document description.");
 
-                   var result = new LoadDocumentDescriptionResponse
-                   {
-                       Guid = request.Guid,
-                       FileType = documentDescription.FileType,
-                      /* PrintAllowed = documentDescription.PrintAllowed,*/
-                       Pages = pages,
-                       //SearchTerm = searchTerm
-                   };
+                return ErrorJsonResult(ex.Message);
+            }
+        }
 
-                   return OkJsonResult(result);
-               }
-               catch (Exception ex)
-               {
-                   if (ex.Message.Contains("password", StringComparison.InvariantCultureIgnoreCase))
-                   {
-                       var message = string.IsNullOrEmpty(request.Password)
-                               ? "Password Required"
-                               : "Incorrect Password";
 
-                       return ForbiddenJsonResult(message);
-                   }
-
-                   _logger.LogError(ex, "Failed to read document description.");
-
-                   return ErrorJsonResult(ex.Message);
-               }
-           }
-
-        /*
-           [HttpPost]
+        /*   [HttpPost]
            public async Task<IActionResult> LoadDocumentPage([FromBody] LoadDocumentPageRequest request)
            {
                try
                {
-                   var fileCredentials =
-                       new FileCredentials(request.Guid, request.FileType, request.Password);
-                   var page = await _comparison.GetPageAsync(fileCredentials, request.Page);
-                   var pageContent = new PageContent { Number = page.PageNumber, Data = page.GetContent() };
+                   PageDescriptionEntity loadedPage = new PageDescriptionEntity();
 
-                   return OkJsonResult(pageContent);
+                   // get/set parameters
+                   string documentGuid = request.Guid;
+                   int pageNumber = request.Page;
+                   string password = (string.IsNullOrEmpty(request.Password)) ? null : request.Password;
+
+                   using (Comparer comparer = new Comparer(documentGuid, GetLoadOptions(password)))
+                   {
+                       IDocumentInfo info = comparer.Source.GetDocumentInfo();
+
+                       string encodedImage = GetPageData(pageNumber - 1, documentGuid, password);
+                       loadedPage.SetData(encodedImage);
+
+                       loadedPage.height = info.PagesInfo[pageNumber - 1].Height;
+                       loadedPage.width = info.PagesInfo[pageNumber - 1].Width;
+                       loadedPage.number = pageNumber;
+                   }
+                   return OkJsonResult(loadedPage);
                }
                catch (Exception ex)
                {
@@ -221,39 +274,189 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
 
                    return ErrorJsonResult(ex.Message);
                }
-           }
-*/
-           private Task<(string, byte[])> ReadOrDownloadFile()
-           {
-               var url = Request.Form["url"].ToString();
+           }*/
+        [HttpPost]
+        public IActionResult Compare([FromBody] CompareRequest request)
+        {
+            try
+            {
+                CompareResponse compareResultResponse = CompareTwoDocuments(request);
+                return OkJsonResult(compareResultResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to compare documents.");
 
-               return string.IsNullOrEmpty(url)
-                   ? ReadFileFromRequest()
-                   : DownloadFileAsync(url);
-           }
+                return ErrorJsonResult(ex.Message);
+            }
+        }
 
-           private async Task<(string, byte[])> ReadFileFromRequest()
-           {
-               var formFile = Request.Form.Files.First();
-               var stream = new MemoryStream();
+        private CompareResponse CompareTwoDocuments(CompareRequest compareRequest)
+        {
+            // to get correct coordinates we will compare document twice
+            // this is a first comparing to get correct coordinates of the insertions and style changes
+            string extension = Path.GetExtension(compareRequest.guids[0].guid);
+            string guid = Guid.NewGuid().ToString();
+            //save all results in file
+            string resultGuid = Path.Combine(_config.ResultDirectory, guid + extension);
 
-               await formFile.CopyToAsync(stream);
+            Comparer compareResult = CompareFiles(compareRequest, resultGuid);
+            ChangeInfo[] changes = compareResult.GetChanges();
 
-               return (formFile.FileName, stream.ToArray());
-           }
+            CompareResponse compareResultResponse = GetCompareResultResponse(changes, resultGuid);
+            compareResultResponse.SetExtension(extension);
+            return compareResultResponse;
+        }
 
-           private async Task<(string, byte[])> DownloadFileAsync(string url)
-           {
-               using HttpClient httpClient = new HttpClient();
-               httpClient.DefaultRequestHeaders.Add("User-Agent", "Other");
+        private static Comparer CompareFiles(CompareRequest compareRequest, string resultGuid)
+        {
+            string firstPath = compareRequest.guids[0].guid;
+            string secondPath = compareRequest.guids[1].guid;
 
-               Uri uri = new Uri(url);
-               string fileName = Path.GetFileName(uri.LocalPath);
-               byte[] bytes = await httpClient.GetByteArrayAsync(uri);
+            // create new comparer
+            Comparer comparer = new Comparer(firstPath, GetLoadOptions(compareRequest.guids[0].password));
 
-               return (fileName, bytes);
-           }
-        
+            comparer.Add(secondPath, GetLoadOptions(compareRequest.guids[1].password));
+            CompareOptions compareOptions = new CompareOptions { CalculateCoordinates = true };
+
+            if (Path.GetExtension(resultGuid) == ".pdf")
+            {
+                compareOptions.DetalisationLevel = DetalisationLevel.High;
+            }
+
+            using (FileStream outputStream = System.IO.File.Create(Path.Combine(resultGuid)))
+            {
+                comparer.Compare(outputStream, compareOptions);
+            }
+
+            return comparer;
+        }
+
+        private static CompareResponse GetCompareResultResponse(ChangeInfo[] changes, string resultGuid)
+        {
+            CompareResponse compareResultResponse = new CompareResponse();
+            compareResultResponse.SetChanges(changes);
+
+            List<PageDescriptionEntity> pages = LoadDocumentPages(resultGuid, "", true).GetPages();
+
+            compareResultResponse.SetPages(pages);
+            compareResultResponse.SetGuid(resultGuid);
+            return compareResultResponse;
+        }
+
+        public static LoadDocumentEntity LoadDocumentPages(string documentGuid, string password, bool loadAllPages)
+        {
+            LoadDocumentEntity loadDocumentEntity = new LoadDocumentEntity();
+
+            using (Comparer comparer = new Comparer(documentGuid, GetLoadOptions(password)))
+            {
+                Dictionary<int, string> pagesContent = new Dictionary<int, string>();
+                IDocumentInfo documentInfo = comparer.Source.GetDocumentInfo();
+                if (documentInfo.PagesInfo == null)
+                {
+                    throw new GroupDocs.Comparison.Common.Exceptions.ComparisonException("File is corrupted.");
+                }
+
+                if (loadAllPages)
+                {
+                    for (int i = 0; i < documentInfo.PageCount; i++)
+                    {
+                        string encodedImage = GetPageData(i, documentGuid, password);
+
+                        pagesContent.Add(i, encodedImage);
+                    }
+                }
+
+                for (int i = 0; i < documentInfo.PageCount; i++)
+                {
+                    PageDescriptionEntity pageData = new PageDescriptionEntity
+                    {
+                        height = documentInfo.PagesInfo[i].Height,
+                        width = documentInfo.PagesInfo[i].Width,
+                        number = i + 1
+                    };
+
+                    if (pagesContent.Count > 0)
+                    {
+                        pageData.SetData(pagesContent[i]);
+                    }
+
+                    loadDocumentEntity.SetPages(pageData);
+                }
+
+                return loadDocumentEntity;
+            }
+        }
+
+        private Task<(string, byte[])> ReadOrDownloadFile()
+        {
+            var url = Request.Form["url"].ToString();
+
+            return string.IsNullOrEmpty(url)
+                ? ReadFileFromRequest()
+                : DownloadFileAsync(url);
+        }
+
+        private async Task<(string, byte[])> ReadFileFromRequest()
+        {
+            var formFile = Request.Form.Files.First();
+            var stream = new MemoryStream();
+
+            await formFile.CopyToAsync(stream);
+
+            return (formFile.FileName, stream.ToArray());
+        }
+
+        private async Task<(string, byte[])> DownloadFileAsync(string url)
+        {
+            using HttpClient httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Other");
+
+            Uri uri = new Uri(url);
+            string fileName = Path.GetFileName(uri.LocalPath);
+            byte[] bytes = await httpClient.GetByteArrayAsync(uri);
+
+            return (fileName, bytes);
+        }
+        private static string GetPageData(int pageNumber, string documentGuid, string password)
+        {
+            string encodedImage = "";
+
+            using (Comparer comparer = new Comparer(documentGuid, GetLoadOptions(password)))
+            {
+                byte[] bytes = RenderPageToMemoryStream(comparer, pageNumber).ToArray();
+                encodedImage = Convert.ToBase64String(bytes);
+            }
+
+            return encodedImage;
+        }
+        private static LoadOptions GetLoadOptions(string password)
+        {
+            LoadOptions loadOptions = new LoadOptions
+            {
+                Password = password
+            };
+
+            return loadOptions;
+        }
+        static MemoryStream RenderPageToMemoryStream(Comparer comparer, int pageNumberToRender)
+        {
+            MemoryStream result = new MemoryStream();
+            IDocumentInfo documentInfo = comparer.Source.GetDocumentInfo();
+
+            PreviewOptions previewOptions = new PreviewOptions(pageNumber => result)
+            {
+                PreviewFormat = PreviewFormats.PNG,
+                PageNumbers = new[] { pageNumberToRender + 1 },
+                Height = documentInfo.PagesInfo[pageNumberToRender].Height,
+                Width = documentInfo.PagesInfo[pageNumberToRender].Width
+            };
+
+            comparer.Source.GeneratePreview(previewOptions);
+
+            return result;
+        }
+
         private IActionResult ErrorJsonResult(string message) =>
             new ComparisonActionResult(new ErrorResponse(message))
             {
