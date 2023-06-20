@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using GroupDocs.Comparison.UI.Core;
 using GroupDocs.Comparison.UI.SelfHost.Api.Configuration;
 using Microsoft.Extensions.Options;
 
@@ -78,7 +79,7 @@ namespace GroupDocs.Comparison.UI.SelfHost.Api.Licensing
                 string licPath = string.Concat(AppDomain.CurrentDomain.BaseDirectory, licFileName);
                 try
                 {
-                    SetLicense(licPath);
+                     SetLicense(licPath);
                 }
                 catch (Exception ex)
                 {

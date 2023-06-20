@@ -1,78 +1,36 @@
 ﻿using Newtonsoft.Json;
 using GroupDocs.Comparison.Result;
 using GroupDocs.Comparison.UI.Api.Entity;
+using System.Text.Json.Serialization;
 
 namespace GroupDocs.Comparison.UI.Api.Models
 {
     public class CompareResponse
     {
-        /// <summary>
-        /// List of changies
-        /// </summary>
-        [JsonProperty]
-        private ChangeInfo[] changes;
 
         /// <summary>
-        /// List of images of pages with marked changes
+        /// File unique ID.
         /// </summary>
-        [JsonProperty]
-        private List<PageDescriptionEntity> pages;
+        [JsonPropertyName("guid")]
+        public string Guid { get; set; }
 
         /// <summary>
-        /// Unique key of results
+        /// File type e.g "docx".
         /// </summary>
-        [JsonProperty]
-        private string guid;
+        [JsonPropertyName("fileType")]
+        public string FileType { get; set; }
 
         /// <summary>
-        /// Extension of compared files, for saving Comparison results
+        /// Document pages.
         /// </summary>
-        [JsonProperty]
-        private string extension;
+        [JsonPropertyName("pages")]
+        public List<PageDescription> Pages { get; set; }
 
-        public void SetChanges(ChangeInfo[] changes)
-        {
-            this.changes = changes;
-        }
+        /// <summary>
+        /// List of changes
+        /// </summary>
+        [JsonPropertyName("changes")]
+        public List<CompareChangeInfo> Changes { get; set; }
 
-        public ChangeInfo[] GetChanges()
-        {
-            return changes;
-        }
-
-        public void SetPages(List<PageDescriptionEntity> pages)
-        {
-            this.pages = pages;
-        }
-
-        public void AddPage(PageDescriptionEntity page)
-        {
-            this.pages.Add(page);
-        }
-
-        public List<PageDescriptionEntity> GetPages()
-        {
-            return pages;
-        }
-
-        public void SetGuid(string guid)
-        {
-            this.guid = guid;
-        }
-
-        public string GetGuid()
-        {
-            return guid;
-        }
-
-        public void SetExtension(string extension)
-        {
-            this.extension = extension;
-        }
-
-        public string GetExtension()
-        {
-            return extension;
-        }
     }
 }

@@ -9,7 +9,6 @@ using GroupDocs.Comparison.UI.SelfHost.Api;
 using GroupDocs.Comparison.UI.SelfHost.Api.Configuration;
 using GroupDocs.Comparison.UI.SelfHost.Api.InternalCaching;
 using GroupDocs.Comparison.UI.SelfHost.Api.Licensing;
-using GroupDocs.Comparison.UI.SelfHost.Api.Comparison;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.Extensions.Caching.Memory;
@@ -43,7 +42,6 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddTransient<IAsyncLock, AsyncDuplicateLock>();
             builder.Services.TryAddSingleton<IFileNameResolver, FilePathFileNameResolver>();
             builder.Services.TryAddSingleton<IFileTypeResolver, FileExtensionFileTypeResolver>();
-            builder.Services.TryAddSingleton<ISearchTermResolver, SearchTermResolver>();
             builder.Services.TryAddSingleton<IUIConfigProvider, UIConfigProvider>();
             builder.Services.AddTransient<IUIConfigProvider, UIConfigProvider>();
 
@@ -61,8 +59,6 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 builder.Services.TryAddSingleton<IInternalCache, NoopInternalCache>();
             }
-
-            builder.Services.AddTransient<IComparison, BaseComparison>();
 
             return new GroupDocsComparisonUIApiBuilder(builder.Services);
         }

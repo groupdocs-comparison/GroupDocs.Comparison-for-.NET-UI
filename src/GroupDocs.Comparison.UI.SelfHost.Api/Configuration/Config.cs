@@ -7,18 +7,11 @@ namespace GroupDocs.Comparison.UI.SelfHost.Api.Configuration
     public class Config
     {
         internal string LicensePath = string.Empty;
-        internal readonly CompareOptions comparisonOptions = new CompareOptions();
         internal readonly InternalCacheOptions InternalCacheOptions = InternalCacheOptions.CacheForFiveMinutes;
 
         public Config SetLicensePath(string licensePath)
         {
             LicensePath = licensePath;
-            return this;
-        }
-
-        public Config ConfigureCompareOptions(Action<CompareOptions> setupOptions)
-        {
-            setupOptions?.Invoke(comparisonOptions);
             return this;
         }
 

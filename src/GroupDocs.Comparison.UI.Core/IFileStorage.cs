@@ -11,5 +11,7 @@ namespace GroupDocs.Comparison.UI.Core
         Task<byte[]> ReadFileAsync(string filePath);
 
         Task<string> WriteFileAsync(string fileName, byte[] bytes, bool rewrite);
+
+        public string GetFileStoragePath();
     }
 }

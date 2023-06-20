@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using GroupDocs.Comparison.Common.Exceptions;
+﻿using GroupDocs.Comparison.Common.Exceptions;
 using GroupDocs.Comparison.Interfaces;
 using GroupDocs.Comparison.UI.Api.Entity;
 using GroupDocs.Comparison.UI.Api.Infrastructure;
@@ -13,8 +6,6 @@ using GroupDocs.Comparison.UI.Api.Models;
 using GroupDocs.Comparison.UI.Core;
 using GroupDocs.Comparison.UI.Core.Configuration;
 using GroupDocs.Comparison.Options;
-using GroupDocs.Comparison.UI.Core.Entities;
-//using GroupDocs.Comparison.UI.Core.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,6 +14,9 @@ using GroupDocs.Comparison.UI.Api.Util.Comparator;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Drawing.Drawing2D;
 using GroupDocs.Comparison.Result;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+using System.Resources;
 
 namespace GroupDocs.Comparison.UI.Api.Controllers
 {
@@ -31,24 +25,21 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
     {
         private readonly IFileStorage _fileStorage;
         private readonly IFileNameResolver _fileNameResolver;
-        private readonly ISearchTermResolver _searchTermResolver;
+        private readonly IComparisonLicenser _comparisonLicenser;
         private readonly IUIConfigProvider _uiConfigProvider;
-        private readonly IComparison _comparison;
         private readonly ILogger<ComparisonController> _logger;
         private readonly Config _config;
 
         public ComparisonController(IFileStorage fileStorage,
             IFileNameResolver fileNameResolver,
-            ISearchTermResolver searchTermResolver,
+            IComparisonLicenser comparisonLicenser,
             IUIConfigProvider uiConfigProvider,
-            IComparison comparison,
             IOptions<Config> config,
             ILogger<ComparisonController> logger)
         {
             _fileStorage = fileStorage;
             _fileNameResolver = fileNameResolver;
-            _searchTermResolver = searchTermResolver;
-            _comparison = comparison;
+            _comparisonLicenser = comparisonLicenser;
             _logger = logger;
             _config = config.Value;
             _uiConfigProvider = uiConfigProvider;
@@ -59,13 +50,8 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
         {
             var config = new LoadConfigResponse
             {
-                PageSelector = _config.PageSelector,
                 Download = _config.Download,
-                Upload = _config.Upload,
-                Print = _config.Print,
-                Browse = _config.Browse,
-                Rewrite = _config.Rewrite,
-                EnableRightClick = _config.EnableRightClick
+                FilesDirectory = _config.FilesDirectory
             };
 
             _uiConfigProvider.ConfigureUI(_config);
@@ -133,61 +119,36 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
             }
         }
 
-           [HttpGet]
-           public async Task<IActionResult> DownloadDocument([FromQuery] string path)
-           {
-               if (!_config.Download)
-                   return ErrorJsonResult("Downloading files is disabled.");
+        [HttpGet]
+        public async Task<IActionResult> DownloadDocument([FromQuery] DownloadDocumentRequest request)
+        {
+            if (!_config.Download)
+                return ErrorJsonResult("Downloading files is disabled.");
 
-               try
-               {
-                   var fileName = await _fileNameResolver.ResolveFileNameAsync(path);
-                   var bytes = await _fileStorage.ReadFileAsync(path);
+            try
+            {
+                var fileName = await _fileNameResolver.ResolveFileNameAsync("Result" + Path.GetExtension(request.Guid));
+                var bytes = await _fileStorage.ReadFileAsync(Path.GetFileName(request.Guid));
 
-                   return File(bytes, "application/octet-stream", fileName);
-               }
-               catch (Exception ex)
-               {
-                   _logger.LogError(ex, "Failed to download a document.");
+                return File(bytes, "application/octet-stream", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to download a document.");
 
-                   return ErrorJsonResult(ex.Message);
-               }
-           }
-
-           [HttpPost]
-           public async Task<IActionResult> UploadDocument()
-           {
-               if (!_config.Upload)
-                   return ErrorJsonResult("Uploading files is disabled.");
-
-               try
-               {
-                   var (fileName, bytes) = await ReadOrDownloadFile();
-                   bool.TryParse(Request.Form["rewrite"], out var rewrite);
-
-                   var filePath = await _fileStorage.WriteFileAsync(fileName, bytes, rewrite);
-
-                   var result = new UploadFileResponse(filePath);
-
-                   return OkJsonResult(result);
-               }
-               catch (Exception ex)
-               {
-                   _logger.LogError(ex, "Failed to upload document.");
-
-                   return ErrorJsonResult(ex.Message);
-               }
-           }
+                return ErrorJsonResult(ex.Message);
+            }
+        }
 
         [HttpPost]
         public IActionResult LoadDocumentDescription([FromBody] LoadDocumentDescriptionRequest request)
         {
             try
             {
-                LoadDocumentEntity loadDocumentEntity = new LoadDocumentEntity();
-
+                _comparisonLicenser.SetLicense();
                 using (Comparer comparer = new Comparer(request.Guid, GetLoadOptions(request.Password)))
                 {
+
                     IDocumentInfo documentInfo = comparer.Source.GetDocumentInfo();
                     if (documentInfo.PagesInfo == null)
                     {
@@ -201,7 +162,8 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
                         {
                             Height = documentInfo.PagesInfo[i].Height,
                             Width = documentInfo.PagesInfo[i].Width,
-                            Data = encodedImage
+                            Data = encodedImage,
+                            Number = documentInfo.PagesInfo[i].PageNumber
                         };
                         PageDescriptions.Add(page);
                     }
@@ -209,9 +171,7 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
                     {
                         Guid = request.Guid,
                         FileType = request.FileType,
-                        /*to do PrintAllowed = request.PrintAllowed,*/
                         Pages = PageDescriptions,
-                        /*to do SearchTerm = searchTerm*/
                     };
 
                     return OkJsonResult(result);
@@ -233,48 +193,22 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult Changes([FromBody]SetChangesRequest setChangesRequest)
+        {
+            try
+            {
+                CompareResponse compareResultResponse = SetChanges(setChangesRequest);
+                return OkJsonResult(compareResultResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to compare documents.");
 
-        /*   [HttpPost]
-           public async Task<IActionResult> LoadDocumentPage([FromBody] LoadDocumentPageRequest request)
-           {
-               try
-               {
-                   PageDescriptionEntity loadedPage = new PageDescriptionEntity();
+                return ErrorJsonResult(ex.Message);
+            }
+        }
 
-                   // get/set parameters
-                   string documentGuid = request.Guid;
-                   int pageNumber = request.Page;
-                   string password = (string.IsNullOrEmpty(request.Password)) ? null : request.Password;
-
-                   using (Comparer comparer = new Comparer(documentGuid, GetLoadOptions(password)))
-                   {
-                       IDocumentInfo info = comparer.Source.GetDocumentInfo();
-
-                       string encodedImage = GetPageData(pageNumber - 1, documentGuid, password);
-                       loadedPage.SetData(encodedImage);
-
-                       loadedPage.height = info.PagesInfo[pageNumber - 1].Height;
-                       loadedPage.width = info.PagesInfo[pageNumber - 1].Width;
-                       loadedPage.number = pageNumber;
-                   }
-                   return OkJsonResult(loadedPage);
-               }
-               catch (Exception ex)
-               {
-                   if (ex.Message.Contains("password", StringComparison.InvariantCultureIgnoreCase))
-                   {
-                       var message = string.IsNullOrEmpty(request.Password)
-                           ? "Password Required"
-                           : "Incorrect Password";
-
-                       return ForbiddenJsonResult(message);
-                   }
-
-                   _logger.LogError(ex, "Failed to retrieve document page.");
-
-                   return ErrorJsonResult(ex.Message);
-               }
-           }*/
         [HttpPost]
         public IActionResult Compare([FromBody] CompareRequest request)
         {
@@ -298,13 +232,13 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
             string extension = Path.GetExtension(compareRequest.guids[0].guid);
             string guid = Guid.NewGuid().ToString();
             //save all results in file
-            string resultGuid = Path.Combine(_config.ResultDirectory, guid + extension);
+            string resultGuid = Path.Combine(_fileStorage.GetFileStoragePath(), guid + extension);
 
             Comparer compareResult = CompareFiles(compareRequest, resultGuid);
             ChangeInfo[] changes = compareResult.GetChanges();
 
             CompareResponse compareResultResponse = GetCompareResultResponse(changes, resultGuid);
-            compareResultResponse.SetExtension(extension);
+            compareResultResponse.FileType = extension;
             return compareResultResponse;
         }
 
@@ -335,18 +269,43 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
         private static CompareResponse GetCompareResultResponse(ChangeInfo[] changes, string resultGuid)
         {
             CompareResponse compareResultResponse = new CompareResponse();
-            compareResultResponse.SetChanges(changes);
+            List<CompareChangeInfo> ChangeList = new List<CompareChangeInfo>();
+            for (int i = 0; i < changes.Length; i++)
+            {
+                var comparePageInfo = new ComparePageInfo()
+                {
+                    PageNumber = changes[i].PageInfo.PageNumber,
+                    Width = changes[i].PageInfo.Width,
+                    Height = changes[i].PageInfo.Height
+                };
 
-            List<PageDescriptionEntity> pages = LoadDocumentPages(resultGuid, "", true).GetPages();
+                var compareBox = new CompareBox()
+                {
+                    Height = changes[i].Box.Height,
+                    Width = changes[i].Box.Width,
+                    X = changes[i].Box.X,
+                    Y = changes[i].Box.Y,
+                };
 
-            compareResultResponse.SetPages(pages);
-            compareResultResponse.SetGuid(resultGuid);
+                var compareChangeInfo = new CompareChangeInfo()
+                {
+                    PageInfo = comparePageInfo,
+                    Box = compareBox
+                };
+
+                ChangeList.Add(compareChangeInfo);
+            }
+
+
+            compareResultResponse.Changes = ChangeList;
+            compareResultResponse.Pages = (LoadDocumentPages(resultGuid, "", true));
+            compareResultResponse.Guid = resultGuid;
             return compareResultResponse;
         }
 
-        public static LoadDocumentEntity LoadDocumentPages(string documentGuid, string password, bool loadAllPages)
+        public static List<PageDescription> LoadDocumentPages(string documentGuid, string password, bool loadAllPages)
         {
-            LoadDocumentEntity loadDocumentEntity = new LoadDocumentEntity();
+            List<PageDescription> pagesDescription = new List<PageDescription>();
 
             using (Comparer comparer = new Comparer(documentGuid, GetLoadOptions(password)))
             {
@@ -357,66 +316,21 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
                     throw new GroupDocs.Comparison.Common.Exceptions.ComparisonException("File is corrupted.");
                 }
 
-                if (loadAllPages)
-                {
-                    for (int i = 0; i < documentInfo.PageCount; i++)
-                    {
-                        string encodedImage = GetPageData(i, documentGuid, password);
-
-                        pagesContent.Add(i, encodedImage);
-                    }
-                }
-
                 for (int i = 0; i < documentInfo.PageCount; i++)
                 {
-                    PageDescriptionEntity pageData = new PageDescriptionEntity
+                    string encodedImage = GetPageData(i, documentGuid, password);
+                    PageDescription page = new PageDescription()
                     {
-                        height = documentInfo.PagesInfo[i].Height,
-                        width = documentInfo.PagesInfo[i].Width,
-                        number = i + 1
+                        Height = documentInfo.PagesInfo[i].Height,
+                        Width = documentInfo.PagesInfo[i].Width,
+                        Data = encodedImage,
+                        Number = documentInfo.PagesInfo[i].PageNumber
                     };
-
-                    if (pagesContent.Count > 0)
-                    {
-                        pageData.SetData(pagesContent[i]);
-                    }
-
-                    loadDocumentEntity.SetPages(pageData);
+                    pagesDescription.Add(page);
                 }
 
-                return loadDocumentEntity;
+                return pagesDescription;
             }
-        }
-
-        private Task<(string, byte[])> ReadOrDownloadFile()
-        {
-            var url = Request.Form["url"].ToString();
-
-            return string.IsNullOrEmpty(url)
-                ? ReadFileFromRequest()
-                : DownloadFileAsync(url);
-        }
-
-        private async Task<(string, byte[])> ReadFileFromRequest()
-        {
-            var formFile = Request.Form.Files.First();
-            var stream = new MemoryStream();
-
-            await formFile.CopyToAsync(stream);
-
-            return (formFile.FileName, stream.ToArray());
-        }
-
-        private async Task<(string, byte[])> DownloadFileAsync(string url)
-        {
-            using HttpClient httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "Other");
-
-            Uri uri = new Uri(url);
-            string fileName = Path.GetFileName(uri.LocalPath);
-            byte[] bytes = await httpClient.GetByteArrayAsync(uri);
-
-            return (fileName, bytes);
         }
         private static string GetPageData(int pageNumber, string documentGuid, string password)
         {
@@ -457,6 +371,56 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
             return result;
         }
 
+        public CompareResponse SetChanges(SetChangesRequest setChangesRequest)
+        {
+            string extension = Path.GetExtension(setChangesRequest.guids[0].guid);
+            string guid = Guid.NewGuid().ToString();
+            string resultGuid = Path.Combine(_fileStorage.GetFileStoragePath(), guid + extension);
+
+            string firstPath = setChangesRequest.guids[0].guid;
+            string secondPath = setChangesRequest.guids[1].guid;
+
+            Comparer compareResult = new Comparer(firstPath, GetLoadOptions(setChangesRequest.guids[0].password));
+
+            compareResult.Add(secondPath, GetLoadOptions(setChangesRequest.guids[1].password));
+            CompareOptions compareOptions = new CompareOptions { CalculateCoordinates = true };
+            if (Path.GetExtension(resultGuid) == ".pdf")
+            {
+                compareOptions.DetalisationLevel = DetalisationLevel.High;
+            }
+            using (FileStream outputStream = System.IO.File.Create(Path.Combine(resultGuid)))
+            {
+                compareResult.Compare(outputStream, compareOptions);
+            }
+            ChangeInfo[] changes = compareResult.GetChanges();
+
+            for (int i = 0; i < setChangesRequest.changeTypes.Length; i++)
+            {
+                ComparisonAction action = ComparisonAction.None;
+                switch (setChangesRequest.changeTypes[i])
+                {
+                    case 1:
+                        action = ComparisonAction.Accept;
+                        break;
+                    case 2:
+                        action = ComparisonAction.Reject;
+                        break;
+                    case 3:
+                        action = ComparisonAction.None;
+                        break;
+                }
+                changes[i].ComparisonAction = action;
+            }
+
+            compareResult.ApplyChanges(resultGuid, new SaveOptions(), new ApplyChangeOptions() { Changes = changes });
+
+            CompareResponse compareResultResponse = GetCompareResultResponse(changes, resultGuid);
+            compareResultResponse.FileType = extension;
+
+            return compareResultResponse;
+        }
+
+
         private IActionResult ErrorJsonResult(string message) =>
             new ComparisonActionResult(new ErrorResponse(message))
             {
@@ -467,12 +431,6 @@ namespace GroupDocs.Comparison.UI.Api.Controllers
             new ComparisonActionResult(new ErrorResponse(message))
             {
                 StatusCode = StatusCodes.Status403Forbidden
-            };
-
-        private IActionResult NotFoundJsonResult(string message) =>
-            new ComparisonActionResult(new ErrorResponse(message))
-            {
-                StatusCode = StatusCodes.Status404NotFound
             };
 
         private IActionResult OkJsonResult(object result) =>

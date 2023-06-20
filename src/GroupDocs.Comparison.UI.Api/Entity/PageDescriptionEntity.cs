@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace GroupDocs.Comparison.UI.Api.Entity
 {
     /// <summary>
-    /// DocumentDescriptionEntity
+    /// Page Description Entity
     /// </summary>
     public class PageDescriptionEntity
     {

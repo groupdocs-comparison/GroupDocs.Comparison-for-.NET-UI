@@ -2,15 +2,16 @@
 using GroupDocs.Comparison.UI.Core.Entities;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json.Serialization;
 
 namespace GroupDocs.Comparison.UI.Api.Models
 {
     public class CompareRequest
     {
         /// <summary>
-        /// Contains list of the documents paths
+        /// File unique IDs.
         /// </summary>
+        [JsonPropertyName("guids")]
         public List<CompareFileDataRequest> guids { get; set; }
-
     }
 }

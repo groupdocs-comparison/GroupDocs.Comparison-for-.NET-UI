@@ -43,16 +43,8 @@ namespace GroupDocs.Comparison.UI.Middleware
         {
             return new
             {
-                Config.PageSelector,
                 Config.Download,
-                Config.Upload,
-                Config.Print,
-                Config.Browse,
-                Config.Rewrite,
-                Config.EnableRightClick,
-                Config.FilesDirectory,
-                Config.ResultDirectory,
-                Config.PreloadResultPageCount
+                Config.FilesDirectory
             };
         }
     }

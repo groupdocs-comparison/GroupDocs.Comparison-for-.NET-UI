@@ -121,5 +121,10 @@ namespace GroupDocs.Comparison.UI.Api.Local.Storage
 
             return fileNameCandidate;
         }
+
+        public string GetFileStoragePath()
+        {
+            return _storagePath;
+        }
     }
 }
