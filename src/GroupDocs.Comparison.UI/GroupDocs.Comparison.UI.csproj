@@ -1,10 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <TargetFramework>$(NetVersion)</TargetFramework>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+	<PackageId>GroupDocs.Comparison.UI</PackageId>
+    <Version>$(GroupDocsComparisonUI)</Version>
+    <Description>GroupDocs.Comparison.UI is a ASP.NET Core UI comparison of GroupDocs.Comparison for .NET see https://github.com/groupdocs-comparison/GroupDocs.Comparison-for-.NET-UI for more details.</Description>
+    <PackageTags>GroupDocs;Comparison;UI;Angular;ASP.NET Core;</PackageTags>
+    <PackageIcon>images\icon.png</PackageIcon>
+    <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
+    <ClientRoot>client\</ClientRoot>
+    <BuildClientApp>false</BuildClientApp>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="images\icon.png" />
+  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="assets\index.html" />
@@ -15,12 +27,22 @@
 	
   <ItemGroup>
 	<FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="$(MicrosoftExtensionsHttp)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJson)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GroupDocs.Comparison.UI.Api\GroupDocs.Comparison.UI.Api.csproj" />
   </ItemGroup>
+
+  <Target Name="InstallPackages" BeforeTargets="BeforeBuild" Condition="'$(BuildClientApp)' == 'True'">
+  <Message Importance="high" Text="*** Installing npm packages ***" />
+  <Exec WorkingDirectory="$(ClientRoot)" Command="npm install" ContinueOnError="false" />
+  </Target>
+
+  <Target Name="BuildClient" BeforeTargets="BeforeBuild" DependsOnTargets="InstallPackages" Condition="'$(BuildClientApp)' == 'True'">
+    <Message Importance="high" Text="*** Bundling client files ***" />
+    <Exec WorkingDirectory="$(ClientRoot)" Command="npm run build" ContinueOnError="false" />
+  </Target>
 
 </Project>

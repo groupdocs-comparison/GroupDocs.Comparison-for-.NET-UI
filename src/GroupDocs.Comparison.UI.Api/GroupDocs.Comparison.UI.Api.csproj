@@ -1,9 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <TargetFramework>$(NetVersion)</TargetFramework>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+	<PackageId>GroupDocs.Comparison.UI.Api</PackageId>
+    <Version>$(GroupDocsComparisonUIApi)</Version>
+    <Description>GroupDocs.Comparison.UI.Api containing base API features required by GroupDocs.Comparison.UI see https://github.com/groupdocs-comparison/GroupDocs.Comparison-for-.NET-UI for more details.</Description>
+    <PackageTags>GroupDocs;Comparison;UI;API;ASP.NET Core;</PackageTags>
+    <PackageIcon>images\icon.png</PackageIcon>
   </PropertyGroup>
 
 	<ItemGroup>

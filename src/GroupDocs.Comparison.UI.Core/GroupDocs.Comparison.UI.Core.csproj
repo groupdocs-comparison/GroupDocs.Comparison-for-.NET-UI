@@ -1,13 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFramework>net6.0</TargetFramework>
-	<ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <TargetFramework>$(NetVersion)</TargetFramework>
+
+    <PackageId>GroupDocs.Comparison.UI.Core</PackageId>
+    <Version>$(GroupDocsComparisonUICore)</Version>
+    <Description>GroupDocs.Comparison.UI.Core containing interfaces, extensions, builders and model definitions see https://github.com/groupdocs-comparison/GroupDocs.Comparison-for-.NET-UI for more details.</Description>
+    <PackageTags>GroupDocs;Comparison;UI;Core;ASP.NET Core;</PackageTags>
+    <PackageIcon>images\icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsDependencyInjectionAbstractions)" />
     <PackageReference Include="NETStandard.Library" Version="2.0.3" />
   </ItemGroup>
 
