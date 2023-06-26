@@ -1,0 +1,43 @@
+name: Publish Prod
+
+on:
+  workflow_dispatch:
+jobs:
+  publish_prod:
+    runs-on: windows-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+      - name: Write cert
+        env:
+          PFX_IN_BASE64: ${{ secrets.PFX_IN_BASE64 }}
+          PFX_PATH: ${{ secrets.PFX_PATH }}
+        run: |
+          [System.IO.File]::WriteAllBytes($env:PFX_PATH, [System.Convert]::FromBase64String($env:PFX_IN_BASE64))
+      - name: Build packages
+        env:
+          BUILD_TYPE: PROD
+          PFX_PATH: ${{ secrets.PFX_PATH }}
+          PFX_PWD: ${{ secrets.PFX_PWD }}
+          PFX_TMS: ${{ secrets.PFX_TMS }}
+        run: .\build.ps1
+      - name: Remove cert
+        env:
+          PFX_PATH: ${{ secrets.PFX_PATH }}
+        run: |
+          rm $env:PFX_PATH
+      - name: Publish to Prod
+        env:
+          NUGET_API_KEY_PROD: ${{ secrets.NUGET_API_KEY_PROD }}
+        run: .\publish-prod.ps1
+      - name: Archive packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts
