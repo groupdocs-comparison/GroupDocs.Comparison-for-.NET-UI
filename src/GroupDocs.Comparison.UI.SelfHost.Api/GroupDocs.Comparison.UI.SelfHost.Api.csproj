@@ -9,6 +9,11 @@
     <PackageTags>GroupDocs;Comparison;UI;SelftHost;API;ASP.NET Core;</PackageTags>
     <PackageIcon>images\icon.png</PackageIcon>
   </PropertyGroup>
+  
+    <ItemGroup>
+    <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="images\icon.png" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="GroupDocs.Comparison" Version="23.4.0" />
