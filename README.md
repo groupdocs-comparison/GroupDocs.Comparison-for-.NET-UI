@@ -1,8 +1,6 @@
 # UI for GroupDocs.Comparison for .NET
 
 ![Build Packages](https://github.com/groupdocs-comparison/GroupDocs.Comparison-for-.NET-UI/actions/workflows/build_packages.yml/badge.svg)
-![Nuget](https://img.shields.io/nuget/v/groupdocs.comparison.ui?label=GroupDocs.Comparison.UI)
-![Nuget](https://img.shields.io/nuget/dt/GroupDocs.Comparison.UI?label=GroupDocs.Comparison.UI)
 
 ![GroupDocs.Comparison.UI](./doc/images/comparison-ui.png)
 
@@ -120,7 +118,7 @@ endpoints.MapGroupDocsComparisonUI(options =>
 
 The API is used to serve content such as information about a document, document pages in HTML/PNG/JPG format and PDF file for printing. The API can be hosted in the same or a separate application. The following API implementations available at the moment:
 
-- [GroupDocs.Comparison.UI.SelfHost.Api](https://www.nuget.org/packages/GroupDocs.Comparison.UI.SelfHost.Api)
+- GroupDocs.Comparison.UI.SelfHost.Api
 
 All the API implementations are extensions of `IMvcBuilder`:
 
@@ -176,7 +174,7 @@ As an example the following commands should be executed to install the dependenc
 
 Storage providers are used to read/write file from/to the storage. The storage provider is mandatory.
 
-- [GroupDocs.Comparison.UI.Api.Local.Storage](https://www.nuget.org/packages/GroupDocs.Comparison.UI.Api.Local.Storage)
+- GroupDocs.Comparison.UI.Api.Local.Storage
 
 All the storage providers are extensions of `GroupDocsComparisonUIApiBuilder`:
 
@@ -195,8 +193,7 @@ services
 
 In case you would like to cache the output files produced by GroupDocs.Comparison you can use one of the cache providers:
 
-- [GroupDocs.Comparison.UI.Api.Local.Cache](https://www.nuget.org/packages/GroupDocs.Comparison.UI.Api.Local.Cache)
-- [GroupDocs.Comparison.UI.Api.InMemory.Cache](https://www.nuget.org/packages/GroupDocs.Comparison.UI.Api.InMemory.Cache)
+- GroupDocs.Comparison.UI.Api.Local.Cache
 
 All the cache providers are extensions of `GroupDocsComparisonUIApiBuilder`:
 
