@@ -27,7 +27,7 @@ public class Startup
         services
                 .AddGroupDocsComparisonUI(config =>
                 {
-                    config.SetFilesDirectory("./Filese");
+                    config.SetFilesDirectory("./Files");
                 });
 
         services
@@ -71,7 +71,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
         .AddGroupDocsComparisonUI(config =>
         {
-            config.SetFilesDirectory("./Filese");
+            config.SetFilesDirectory("./Files");
         });
 builder.Services
         .AddControllers()
@@ -81,7 +81,7 @@ builder.Services
             //Temporary license can be requested at https://purchase.groupdocs.com/temporary-license
             //config.SetLicensePath("c:\\licenses\\GroupDocs.Comparison.lic"); // or set environment variable 'GROUPDOCS_LIC_PATH'
         })
-        .AddLocalStorage("./Files")
+        .AddLocalStorage("./Temp")
         .AddLocalCache("./Cache");
 
 var app = builder.Build();
