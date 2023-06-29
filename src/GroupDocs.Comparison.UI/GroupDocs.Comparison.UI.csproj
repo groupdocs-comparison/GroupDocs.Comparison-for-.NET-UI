@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GroupDocs.Comparison.UI.Api\GroupDocs.Comparison.UI.Api.csproj" />
+    <ProjectReference Include="..\GroupDocs.Comparison.UI.Core\GroupDocs.Comparison.UI.Core.csproj" />
   </ItemGroup>
 
   <Target Name="InstallPackages" BeforeTargets="BeforeBuild" Condition="'$(BuildClientApp)' == 'True'">
