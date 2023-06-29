@@ -25,7 +25,10 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddGroupDocsComparisonUI();
+                .AddGroupDocsComparisonUI(config =>
+                {
+                    config.SetFilesDirectory("./Filese");
+                });
 
         services
             .AddControllers()
@@ -35,7 +38,7 @@ public class Startup
                 //Temporary license can be requested at https://purchase.groupdocs.com/temporary-license
                 //config.SetLicensePath("c:\\licenses\\GroupDocs.Comparison.lic"); // or set environment variable 'GROUPDOCS_LIC_PATH'
             })
-            .AddLocalStorage("./Files")
+            .AddLocalStorage("./Temp")
             .AddLocalCache("./Cache");
     }
 
@@ -66,8 +69,10 @@ Or, if you’re using [new program](https://docs.microsoft.com/en-us/dotnet/core
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
-        .AddGroupDocsComparisonUI();
-
+        .AddGroupDocsComparisonUI(config =>
+        {
+            config.SetFilesDirectory("./Filese");
+        });
 builder.Services
         .AddControllers()
         .AddGroupDocsComparisonSelfHostApi(config =>
