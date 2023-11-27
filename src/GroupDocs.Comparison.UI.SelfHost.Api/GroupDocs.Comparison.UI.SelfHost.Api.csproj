@@ -16,7 +16,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="GroupDocs.Comparison" Version="23.10.0" />
+    <PackageReference Include="GroupDocs.Comparison" Version="23.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="$(MicrosoftAspNetCoreMvcCore)" />
   </ItemGroup>
 
