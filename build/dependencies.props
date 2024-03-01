@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package Versions">
-    <GroupDocsComparison>24.1</GroupDocsComparison>
+    <GroupDocsComparison>24.2</GroupDocsComparison>
 
     <MicrosoftExtensionsHttp>6.0.0</MicrosoftExtensionsHttp>
     <MicrosoftAspNetCoreMvcCore>2.2.5</MicrosoftAspNetCoreMvcCore>
@@ -32,11 +32,11 @@
   </PropertyGroup>
 
   <PropertyGroup Label="GroupDocs.Comparison UI Package Versions">
-	<GroupDocsComparisonUI>6.0.6</GroupDocsComparisonUI>
-	<GroupDocsComparisonUIApi>6.0.6</GroupDocsComparisonUIApi>
-	<GroupDocsComparisonUIApiLocalCache>6.0.6</GroupDocsComparisonUIApiLocalCache>
-	<GroupDocsComparisonUIApiLocalStorage>6.0.6</GroupDocsComparisonUIApiLocalStorage>
-	<GroupDocsComparisonUICore>6.0.6</GroupDocsComparisonUICore>
-	<GroupDocsComparisonUISelfHostApi>6.0.6</GroupDocsComparisonUISelfHostApi>
+	<GroupDocsComparisonUI>6.0.7</GroupDocsComparisonUI>
+	<GroupDocsComparisonUIApi>6.0.7</GroupDocsComparisonUIApi>
+	<GroupDocsComparisonUIApiLocalCache>6.0.7</GroupDocsComparisonUIApiLocalCache>
+	<GroupDocsComparisonUIApiLocalStorage>6.0.7</GroupDocsComparisonUIApiLocalStorage>
+	<GroupDocsComparisonUICore>6.0.7</GroupDocsComparisonUICore>
+	<GroupDocsComparisonUISelfHostApi>6.0.7</GroupDocsComparisonUISelfHostApi>
   </PropertyGroup>
 </Project>
