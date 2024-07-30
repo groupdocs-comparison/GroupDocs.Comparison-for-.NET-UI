@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="GroupDocs.Comparison" Version="24.6.0" />
+	  <PackageReference Include="GroupDocs.Comparison" Version="24.7.0" />
 	  <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.0" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	  <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
