@@ -32,11 +32,11 @@
   </PropertyGroup>
 
   <PropertyGroup Label="GroupDocs.Comparison UI Package Versions">
-	<GroupDocsComparisonUI>6.0.19</GroupDocsComparisonUI>
-	<GroupDocsComparisonUIApi>6.0.19</GroupDocsComparisonUIApi>
-	<GroupDocsComparisonUIApiLocalCache>6.0.19</GroupDocsComparisonUIApiLocalCache>
-	<GroupDocsComparisonUIApiLocalStorage>6.0.19</GroupDocsComparisonUIApiLocalStorage>
-	<GroupDocsComparisonUICore>6.0.19</GroupDocsComparisonUICore>
-	<GroupDocsComparisonUISelfHostApi>6.0.19</GroupDocsComparisonUISelfHostApi>
+	<GroupDocsComparisonUI>6.0.20</GroupDocsComparisonUI>
+	<GroupDocsComparisonUIApi>6.0.20</GroupDocsComparisonUIApi>
+	<GroupDocsComparisonUIApiLocalCache>6.0.20</GroupDocsComparisonUIApiLocalCache>
+	<GroupDocsComparisonUIApiLocalStorage>6.0.20</GroupDocsComparisonUIApiLocalStorage>
+	<GroupDocsComparisonUICore>6.0.20</GroupDocsComparisonUICore>
+	<GroupDocsComparisonUISelfHostApi>6.0.20</GroupDocsComparisonUISelfHostApi>
   </PropertyGroup>
 </Project>
