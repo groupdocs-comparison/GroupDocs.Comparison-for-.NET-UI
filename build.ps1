@@ -47,11 +47,9 @@ $buildSuffix = @{ $true = "$($suffix)-$($commitHash)"; $false = "$($commitHash)"
 echo "build: Build version suffix is $buildSuffix"
 
 exec { & dotnet build GroupDocs.Comparison.UI.sln -c Release --version-suffix=$buildSuffix -v q /nologo }
-exec { & dotnet pack .\src\GroupDocs.Comparison.UI\GroupDocs.Comparison.UI.csproj -c Release -o .\artifacts --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
-exec { & dotnet pack .\src\GroupDocs.Comparison.UI.Api\GroupDocs.Comparison.UI.Api.csproj -c Release -o .\artifacts --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
-exec { & dotnet pack .\src\GroupDocs.Comparison.UI.Core\GroupDocs.Comparison.UI.Core.csproj -c Release -o .\artifacts --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
-exec { & dotnet pack .\src\GroupDocs.Comparison.UI.SelfHost.Api\GroupDocs.Comparison.UI.SelfHost.Api.csproj -c Release -o .\artifacts --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
-exec { & dotnet pack .\src\GroupDocs.Comparison.UI.Api.Local.Cache\GroupDocs.Comparison.UI.Api.Local.Cache.csproj -c Release -o .\artifacts --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
-exec { & dotnet pack .\src\GroupDocs.Comparison.UI.Api.Local.Storage\GroupDocs.Comparison.UI.Api.Local.Storage.csproj -c Release -o .\artifacts --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
-exec { & dotnet nuget sign .\artifacts\*.nupkg --certificate-path $env:PFX_PATH --certificate-password $env:PFX_PWD --timestamper $env:PFX_TMS }
-exec { & dotnet nuget verify .\artifacts\*.nupkg --all }
+exec { & dotnet pack .\src\GroupDocs.Comparison.UI\GroupDocs.Comparison.UI.csproj -c Release -o .\build_out --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
+exec { & dotnet pack .\src\GroupDocs.Comparison.UI.Api\GroupDocs.Comparison.UI.Api.csproj -c Release -o .\build_out --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
+exec { & dotnet pack .\src\GroupDocs.Comparison.UI.Core\GroupDocs.Comparison.UI.Core.csproj -c Release -o .\build_out --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
+exec { & dotnet pack .\src\GroupDocs.Comparison.UI.SelfHost.Api\GroupDocs.Comparison.UI.SelfHost.Api.csproj -c Release -o .\build_out --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
+exec { & dotnet pack .\src\GroupDocs.Comparison.UI.Api.Local.Cache\GroupDocs.Comparison.UI.Api.Local.Cache.csproj -c Release -o .\build_out --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
+exec { & dotnet pack .\src\GroupDocs.Comparison.UI.Api.Local.Storage\GroupDocs.Comparison.UI.Api.Local.Storage.csproj -c Release -o .\build_out --include-symbols -p:SymbolPackageFormat=snupkg --no-build }
