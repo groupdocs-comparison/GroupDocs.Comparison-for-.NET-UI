@@ -2,7 +2,7 @@
 
 ![Build Packages](https://github.com/groupdocs-comparison/GroupDocs.Comparison-for-.NET-UI/actions/workflows/build_packages.yml/badge.svg)
 
-![GroupDocs.Comparison.UI](./doc/images/comparison-ui.png)
+![GroupDocs.Comparison.UI](https://raw.githubusercontent.com/groupdocs-comparison/groupdocs-comparison.github.io/master/resources/image/ui/comparison-ui.png)
 
 GroupDocs.Comparison UI is a rich UI interface that designed to work in conjunction with [GroupDocs.Comparison for .NET](https://products.groupdocs.com/comparison/net) to compare file and document formats in a browser.
 
@@ -10,7 +10,7 @@ To integrate GroupDocs.Comparison UI in your ASP.NET Core project you just need 
 
 Include packages in your project:
 
-```PowerShell
+```bash
 dotnet add package GroupDocs.Comparison.UI
 dotnet add package GroupDocs.Comparison.UI.SelfHost.Api
 dotnet add package GroupDocs.Comparison.UI.Api.Local.Storage

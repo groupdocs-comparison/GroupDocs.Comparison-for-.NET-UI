@@ -17,7 +17,8 @@
 
   <ItemGroup>
     <PackageReference Include="GroupDocs.Comparison" Version="$(GroupDocsComparison)" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="$(MicrosoftAspNetCoreMvcCore)" />
+	  <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="$(MicrosoftAspNetCoreMvcCore)" />
+	  <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="$(SkiaSharpNativeAssetsLinuxNoDependencies)" />
   </ItemGroup>
 
   <ItemGroup>

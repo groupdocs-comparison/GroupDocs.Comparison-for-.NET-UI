@@ -2,13 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>$(NetVersion)</TargetFramework>
-	<ImplicitUsings>enable</ImplicitUsings>
-	<Nullable>enable</Nullable>
-	<PackageId>GroupDocs.Comparison.UI</PackageId>
+	  <ImplicitUsings>enable</ImplicitUsings>
+	  <Nullable>enable</Nullable>
+
+	  <PackageId>GroupDocs.Comparison.UI</PackageId>
     <Version>$(GroupDocsComparisonUI)</Version>
     <Description>GroupDocs.Comparison.UI is a ASP.NET Core UI comparison of GroupDocs.Comparison for .NET see https://github.com/groupdocs-comparison/GroupDocs.Comparison-for-.NET-UI for more details.</Description>
     <PackageTags>GroupDocs;Comparison;UI;Angular;ASP.NET Core;</PackageTags>
     <PackageIcon>images\icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
     <ClientRoot>client\</ClientRoot>
     <BuildClientApp>false</BuildClientApp>
@@ -16,6 +19,7 @@
 
   <ItemGroup>
     <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="images\icon.png" />
+    <None Include="README.md" pack="true" PackagePath="." />
   </ItemGroup>
 
   <ItemGroup>
