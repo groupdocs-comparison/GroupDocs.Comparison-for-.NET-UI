@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug encountered while using GroupDocs.Viewer.UI
+about: Report a bug encountered while using GroupDocs.Comparison.UI
 labels: kind/bug
 ---
 
