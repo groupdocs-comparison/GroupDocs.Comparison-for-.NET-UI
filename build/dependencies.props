@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package Versions">
-	 <GroupDocsComparison>25.11</GroupDocsComparison>
+	 <GroupDocsComparison>26.1</GroupDocsComparison>
 	 <SkiaSharpNativeAssetsLinuxNoDependencies>3.119.0</SkiaSharpNativeAssetsLinuxNoDependencies>
 
     <MicrosoftExtensionsHttp>6.0.1</MicrosoftExtensionsHttp>
